@@ -88,7 +88,7 @@ func applyMigration(db *sql.DB, file, version string) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	if _, err := tx.Exec(string(contents)); err != nil {
 		return err

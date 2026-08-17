@@ -22,6 +22,10 @@ Steps an AI agent should follow when picking up a task in the flgr repository.
 ## 4. Verify
 
 - If the task is tied to a business requirement, check the implementation against that requirement's Acceptance Criteria.
+- **Before marking any task as done, run the same checks CI gates on ([ADR-0011](../docs/architecture/adr/0011-ci-cd-pipeline.md)) locally, for whichever side of the repo the task touched, and confirm they pass clean — don't rely on inspection alone, and don't leave this for the CI run to catch:**
+  - **Backend** (`flgr-server/`): `golangci-lint run --path-mode=abs` and `go test ./... -coverprofile=coverage.out -covermode=atomic`. Install/update `golangci-lint` to the exact version pinned in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`version:` under the `golangci-lint` step) before running it — a different local version can pass or fail differently than CI, which is what caused the CI-only lint failures on 2026-08-17 (see [roadmap.md](roadmap.md)). Install with: `go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@<version from ci.yml>`.
+  - **Frontend** (`flgr-web-client/`): `npm run lint`, `npx tsc -b`, and `npx vitest run --coverage`.
+  - If any check fails or reports less than the coverage target from [ADR-0004](../docs/architecture/adr/0004-testing-and-coverage-standards.md), fix it before considering the task complete — a task isn't done just because CI hasn't run on it yet.
 
 ## 5. Document
 

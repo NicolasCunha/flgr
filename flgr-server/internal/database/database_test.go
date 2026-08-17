@@ -15,7 +15,7 @@ func TestOpen_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open() returned unexpected error: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 }
 
 func TestOpen_SQLOpenError(t *testing.T) {
@@ -45,7 +45,7 @@ func TestMigrate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open() returned unexpected error: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	if err := Migrate(db, "../../migrations"); err != nil {
 		t.Fatalf("Migrate() returned unexpected error: %v", err)
@@ -79,7 +79,7 @@ func TestMigrate_MissingDirectory(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open() returned unexpected error: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	if err := Migrate(db, "does-not-exist"); err == nil {
 		t.Fatal("Migrate() expected error for missing migrations directory, got nil")
@@ -92,7 +92,7 @@ func TestMigrate_ClosedDatabase(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open() returned unexpected error: %v", err)
 	}
-	db.Close()
+	_ = db.Close()
 
 	if err := Migrate(db, "../../migrations"); err == nil {
 		t.Fatal("Migrate() expected error on a closed database, got nil")
@@ -108,7 +108,7 @@ func TestIsApplied_ClosedDatabase(t *testing.T) {
 	if err := ensureSchemaMigrationsTable(db); err != nil {
 		t.Fatalf("ensureSchemaMigrationsTable() returned unexpected error: %v", err)
 	}
-	db.Close()
+	_ = db.Close()
 
 	if _, err := isApplied(db, "000001_initial_schema"); err == nil {
 		t.Fatal("isApplied() expected error on a closed database, got nil")
@@ -121,7 +121,7 @@ func TestApplyMigration_MissingFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open() returned unexpected error: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 	if err := ensureSchemaMigrationsTable(db); err != nil {
 		t.Fatalf("ensureSchemaMigrationsTable() returned unexpected error: %v", err)
 	}
@@ -138,7 +138,7 @@ func TestApplyMigration_InvalidSQL(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open() returned unexpected error: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 	if err := ensureSchemaMigrationsTable(db); err != nil {
 		t.Fatalf("ensureSchemaMigrationsTable() returned unexpected error: %v", err)
 	}
@@ -167,7 +167,7 @@ func TestApplyMigration_ClosedDatabase(t *testing.T) {
 	if err := os.WriteFile(validFile, []byte("SELECT 1;"), 0o644); err != nil {
 		t.Fatalf("writing migration file: %v", err)
 	}
-	db.Close()
+	_ = db.Close()
 
 	if err := applyMigration(db, validFile, "000000_ok"); err == nil {
 		t.Fatal("applyMigration() expected error on a closed database, got nil")
@@ -180,7 +180,7 @@ func TestMigrate_IsAppliedError(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open() returned unexpected error: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	// Pre-create an incompatible schema_migrations table (no "version"
 	// column): Migrate's own CREATE TABLE IF NOT EXISTS becomes a no-op,
@@ -205,7 +205,7 @@ func TestMigrate_ApplyMigrationError(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open() returned unexpected error: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	migDir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(migDir, "000001_bad.up.sql"), []byte("THIS IS NOT VALID SQL;"), 0o644); err != nil {
@@ -223,7 +223,7 @@ func TestApplyMigration_DuplicateVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open() returned unexpected error: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 	if err := ensureSchemaMigrationsTable(db); err != nil {
 		t.Fatalf("ensureSchemaMigrationsTable() returned unexpected error: %v", err)
 	}
