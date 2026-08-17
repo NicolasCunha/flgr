@@ -26,9 +26,10 @@ jobs:
           cache-dependency-path: flgr-server/go.sum
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v8
         with:
           working-directory: flgr-server
+          version: v2.12
 
       - name: Test with coverage
         run: go test $(go list ./... | grep -v /cmd/) -coverprofile=coverage.out -covermode=atomic

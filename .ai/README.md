@@ -9,6 +9,7 @@ This folder contains instructions for AI coding agents working on the flgr codeb
 
 ## Contents
 
+- [roadmap.md](roadmap.md) — where the project stands right now, the suggested build order, and any in-flight design discussions not yet settled. Read this first when picking up a task across sessions.
 - [workflow.md](workflow.md) — the steps an agent should follow when picking up a task.
 - [documentation.md](documentation.md) — rules for creating and updating business requirements and ADRs, including when user confirmation is required.
 - [backend.md](backend.md) — Go project structure, dependency management, code style, testing, and coverage.

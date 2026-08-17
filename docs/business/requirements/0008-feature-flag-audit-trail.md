@@ -15,6 +15,7 @@ Every change made to a feature flag — its definition or its per-environment va
 | Document | Type | Description | Link |
 | -------- | ---- | ----------- | ---- |
 | Audit Columns & Soft-Delete Convention | Architecture | The generic per-table convention this requirement's log deliberately does not reuse (see Content below). | [0005-audit-columns-and-soft-delete-convention.md](../../architecture/adr/0005-audit-columns-and-soft-delete-convention.md) |
+| Generic Audit Log Pattern | Architecture | Defines the shared `audit_log` table and per-entity link table (`audit_log_feature_flag`) this requirement's Data Model uses. | [0013-generic-audit-log-pattern.md](../../architecture/adr/0013-generic-audit-log-pattern.md) |
 | Feature Flag Management | Business | Defines the create/edit/remove/value-change operations this log records. | [0005-feature-flag-management.md](0005-feature-flag-management.md) |
 | Feature Flag Killswitch | Business | Defines the killswitch operation this log records. | [0006-feature-flag-killswitch.md](0006-feature-flag-killswitch.md) |
 
@@ -41,16 +42,15 @@ Both views require the `Feature Flag: View` permission and list entries most rec
 
 ## Data Model
 
-This table intentionally does **not** use the standard audit columns from [ADR-0005](../../architecture/adr/0005-audit-columns-and-soft-delete-convention.md) — its own `actor_*`/`source`/`occurred_on` columns already capture who/when, and an entry is never modified after being written, so `modified_by`/`modified_on` would not apply.
+This requirement's log follows the generic audit log pattern from [ADR-0013](../../architecture/adr/0013-generic-audit-log-pattern.md): a shared `audit_log` table (used by any audited entity, not just feature flags) plus a `feature_flag`-specific link table carrying the FK to the flag and the affected environment. Neither table uses the standard audit columns from [ADR-0005](../../architecture/adr/0005-audit-columns-and-soft-delete-convention.md) — `audit_log`'s own `actor_*`/`source`/`occurred_on` columns already capture who/when, and an entry is never modified after being written, so `modified_by`/`modified_on` would not apply.
 
-### Table: `feature_flag_audit_logs`
+### Table: `audit_log`
 
 | Column | Type | Nullable | Description |
 | ------ | ---- | -------- | ----------- |
 | id | UUID | No | Unique identifier |
-| feature_flag_id | UUID | No | The flag this entry is about |
-| environment_id | UUID | Yes | The environment affected; `NULL` for flag-definition-level entries (create/edit/remove) |
-| action | VARCHAR(30) | No | `FlagCreated`, `FlagEdited`, `FlagRemoved`, `ValueChanged`, or `KillswitchTriggered` |
+| entity_type | VARCHAR(30) | No | `FeatureFlag` for entries this requirement writes; other values are reserved for other entities under [ADR-0013](../../architecture/adr/0013-generic-audit-log-pattern.md) |
+| action | VARCHAR(20) | No | `Created`, `Edited`, `Removed`, `ValueChanged`, or `Triggered` (killswitch) |
 | actor_user_id | UUID | Yes | The User who performed the action, if applicable |
 | actor_service_key_id | UUID | Yes | The Service Key that performed the action, if applicable |
 | source | VARCHAR(10) | No | `UI` or `API` |
@@ -64,8 +64,6 @@ This table intentionally does **not** use the standard audit columns from [ADR-0
 
 | Column | References | On Delete |
 | ------ | ---------- | --------- |
-| feature_flag_id | feature_flags(id) | RESTRICT |
-| environment_id | environments(id) | RESTRICT |
 | actor_user_id | users(id) | RESTRICT |
 | actor_service_key_id | service_keys(id) | RESTRICT |
 
@@ -73,7 +71,31 @@ This table intentionally does **not** use the standard audit columns from [ADR-0
 
 | Name | Columns | Type | Description |
 | ---- | ------- | ---- | ----------- |
-| idx_feature_flag_audit_logs_flag | feature_flag_id, occurred_on | INDEX | Speeds up viewing a flag's full history in order |
+| idx_audit_log_entity_type_occurred_on | entity_type, occurred_on | INDEX | Speeds up the global Audit Log screen's filter/listing by entity type |
+
+### Table: `audit_log_feature_flag`
+
+| Column | Type | Nullable | Description |
+| ------ | ---- | -------- | ----------- |
+| audit_log_id | UUID | No | The `audit_log` row this links to |
+| feature_flag_id | UUID | No | The flag this entry is about |
+| environment_id | UUID | Yes | The environment affected; `NULL` for flag-definition-level entries (create/edit/remove) |
+
+**Primary Key:** `audit_log_id`
+
+**Foreign Keys:**
+
+| Column | References | On Delete |
+| ------ | ---------- | --------- |
+| audit_log_id | audit_log(id) | RESTRICT |
+| feature_flag_id | feature_flags(id) | RESTRICT |
+| environment_id | environments(id) | RESTRICT |
+
+**Indexes:**
+
+| Name | Columns | Type | Description |
+| ---- | ------- | ---- | ----------- |
+| idx_audit_log_feature_flag_flag | feature_flag_id | INDEX | Speeds up viewing a flag's full history (joined to `audit_log` for `occurred_on` ordering) |
 
 ## Acceptance Criteria
 
@@ -97,3 +119,4 @@ N/A
 | Person | Role | Date | Description |
 | -------- | ---- | ---- | ----------- |
 | Nicolas Filipe Cunha | Founder | 2026-08-16 | Created the Feature Flag Audit Trail requirement. |
+| Nicolas Filipe Cunha | Founder | 2026-08-17 | Revised Data Model to use the generic audit log pattern ([ADR-0013](../../architecture/adr/0013-generic-audit-log-pattern.md)) instead of a dedicated `feature_flag_audit_logs` table. |

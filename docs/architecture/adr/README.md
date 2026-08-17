@@ -41,3 +41,4 @@ The following ADRs have been created for the flgr application:
 | 0010 | [Application Configuration & Secrets](0010-application-configuration-and-secrets.md) | Backend | Accepted | 2026-08-16 |
 | 0011 | [CI/CD Pipeline](0011-ci-cd-pipeline.md) | Infra | Accepted | 2026-08-16 |
 | 0012 | [Local Development Environment](0012-local-development-environment.md) | Infra | Accepted | 2026-08-16 |
+| 0013 | [Generic Audit Log Pattern](0013-generic-audit-log-pattern.md) | Database | Accepted | 2026-08-17 |
