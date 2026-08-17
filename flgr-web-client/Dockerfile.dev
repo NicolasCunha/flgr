@@ -1,0 +1,15 @@
+# Dev-only image, per docs/architecture/adr/0012-local-development-environment.md.
+# Not the production build — see docs/architecture/adr/0002-single-docker-image-with-nginx.md
+# for that (the "npm run build" output shipped inside the Nginx image).
+FROM node:24-bookworm
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm install
+
+COPY . .
+
+EXPOSE 5173
+
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

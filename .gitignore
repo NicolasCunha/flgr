@@ -1,0 +1,11 @@
+# Local environment configuration (see ADR-0010, ADR-0012)
+.env
+
+# Go
+flgr-server/tmp/
+flgr-server/data/
+*.db
+*.db-journal
+
+# Node (in case anything runs outside flgr-web-client's own .gitignore)
+node_modules/

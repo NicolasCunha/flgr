@@ -48,7 +48,9 @@ Go modules (`go.mod` / `go.sum`), both committed to version control.
 
 ## Migrations
 
-SQL migrations live in `flgr-server/migrations/`, managed with [`golang-migrate`](https://github.com/golang-migrate/migrate). Each schema change (new table, column, index, FK — see the `Data Model` section of the relevant [business requirement](../docs/business/requirements/README.md)) ships as a new migration file, never as an edit to an already-applied one.
+SQL migrations live in `flgr-server/migrations/`, as paired `<version>_<name>.up.sql` / `<version>_<name>.down.sql` files (e.g., `000001_initial_schema.up.sql`), applied by a small runner in `internal/database` (`Migrate`) — not `golang-migrate`. That library's SQLite driver depends on `mattn/go-sqlite3` (cgo), which needs a C toolchain to build; the database itself uses the pure-Go [`modernc.org/sqlite`](https://gitlab.com/cznic/sqlite) driver instead, to keep the build cgo-free (consistent with the reasoning in [ADR-0009](../docs/architecture/adr/0009-kafka-and-webhook-notification-delivery.md) for the Kafka client), and `golang-migrate`'s driver isn't compatible with it. The runner tracks applied versions in a `schema_migrations` table and is idempotent — safe to call on every startup.
+
+Each schema change (new table, column, index, FK — see the `Data Model` section of the relevant [business requirement](../docs/business/requirements/README.md)) ships as a new migration file, never as an edit to an already-applied one.
 
 ## Testing
 

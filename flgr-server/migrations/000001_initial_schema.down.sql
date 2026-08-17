@@ -1,0 +1,17 @@
+DROP TABLE IF EXISTS notification_outbox;
+DROP TABLE IF EXISTS feature_flag_audit_logs;
+DROP TABLE IF EXISTS feature_flag_notification_channels;
+DROP TABLE IF EXISTS feature_flag_environment_values;
+DROP TABLE IF EXISTS feature_flags;
+DROP TABLE IF EXISTS service_key_environments;
+DROP TABLE IF EXISTS user_permissions;
+DROP TABLE IF EXISTS user_profiles;
+DROP TABLE IF EXISTS profile_permissions;
+DROP TABLE IF EXISTS permissions;
+DROP TABLE IF EXISTS profiles;
+DROP TABLE IF EXISTS login_attempts;
+DROP TABLE IF EXISTS sessions;
+DROP TABLE IF EXISTS environments;
+DROP TABLE IF EXISTS environment_categories;
+DROP TABLE IF EXISTS service_keys;
+DROP TABLE IF EXISTS users;

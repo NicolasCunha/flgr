@@ -1,0 +1,17 @@
+# Dev-only image, per docs/architecture/adr/0012-local-development-environment.md.
+# Not the production image — see docs/architecture/adr/0002-single-docker-image-with-nginx.md
+# for that.
+FROM golang:1.26-bookworm
+
+WORKDIR /app
+
+RUN go install github.com/air-verse/air@latest
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+EXPOSE 8080
+
+CMD ["air", "-c", ".air.toml"]
