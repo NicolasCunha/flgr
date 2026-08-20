@@ -25,6 +25,21 @@ func Open(path string) (*sql.DB, error) {
 		return nil, fmt.Errorf("opening database: %w", err)
 	}
 
+	// SQLite (outside WAL mode) only ever allows one writer, and without a
+	// busy_timeout a second connection hitting a lock fails immediately
+	// with SQLITE_BUSY ("database is locked") instead of waiting — exactly
+	// what surfaced as sporadic 401s on concurrent requests (e.g. a
+	// session Touch write racing a GET on another table). database/sql's
+	// default pool opens a new connection per concurrent caller, and a
+	// PRAGMA set via one db.Exec call only applies to whichever connection
+	// happens to run it, not to every connection the pool may later open —
+	// so pinning the pool to a single connection is what makes the WAL/
+	// busy_timeout/foreign_keys PRAGMAs below actually apply to every
+	// query, not just the lucky first one. flgr's request volume doesn't
+	// need real write concurrency; callers now just queue briefly instead
+	// of erroring.
+	db.SetMaxOpenConns(1)
+
 	if err := db.Ping(); err != nil {
 		return nil, fmt.Errorf("pinging database: %w", err)
 	}
@@ -32,6 +47,12 @@ func Open(path string) (*sql.DB, error) {
 	// A successful Ping immediately followed by a failing PRAGMA would
 	// require the database to become unavailable mid-function; not
 	// reachable in a normal test without a fault-injecting driver double.
+	if _, err := db.Exec("PRAGMA journal_mode = WAL"); err != nil {
+		return nil, fmt.Errorf("enabling WAL journal mode: %w", err)
+	}
+	if _, err := db.Exec("PRAGMA busy_timeout = 5000"); err != nil {
+		return nil, fmt.Errorf("setting busy timeout: %w", err)
+	}
 	if _, err := db.Exec("PRAGMA foreign_keys = ON"); err != nil {
 		return nil, fmt.Errorf("enabling foreign keys: %w", err)
 	}

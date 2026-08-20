@@ -5,6 +5,26 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>flgr-web-client</title>
+    <script>
+      // Applies the .dark class before React/next-themes ever run, so a
+      // dark-mode user doesn't see a flash of the light theme on load.
+      // storageKey/value format here must match ThemeProvider's own
+      // (src/app/App.tsx) — next-themes writes "light" | "dark" | "system"
+      // as a plain string under this key.
+      ;(function () {
+        try {
+          var stored = localStorage.getItem('flgr-theme')
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+          if (stored === 'dark' || (stored !== 'light' && prefersDark)) {
+            document.documentElement.classList.add('dark')
+          }
+        } catch {
+          // localStorage/matchMedia can throw in locked-down environments
+          // (privacy mode, some embedded webviews) — falling back to light
+          // is fine, next-themes will reconcile once React mounts anyway.
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

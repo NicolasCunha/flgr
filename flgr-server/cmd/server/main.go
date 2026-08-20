@@ -37,7 +37,7 @@ func main() {
 		log.Fatalf("migrate: %v", err)
 	}
 
-	router := api.NewRouter()
+	router := api.NewRouter(db, cfg)
 
 	log.Printf("flgr-server listening on :%s", cfg.HTTPPort)
 	if err := router.Run(":" + cfg.HTTPPort); err != nil {

@@ -10,6 +10,8 @@
 
 A User is a person who administers the flgr platform through the web UI (as opposed to a consumer application, which accesses flgr through a Service Key — see [0004-service-key-management.md](0004-service-key-management.md)). Users are created by other administrators, not through public self-registration, and authenticate with an email and password. What a user can do once authenticated is governed by [0003-profile-and-permission-management.md](0003-profile-and-permission-management.md), which this requirement does not cover.
 
+The one exception is a fresh install: since every User is otherwise created by an existing one, a brand-new instance with zero Users would have no way to create the first one. A first-run setup wizard in the web UI lets a visitor create exactly one User — the administrator account — for as long as no User exists yet; it stops working the moment the first one is created.
+
 ### Related Documents
 
 | Document | Type | Description | Link |
@@ -63,6 +65,7 @@ In addition to the columns below, every table also includes the audit columns de
 - [ ] A user with the `User: Edit` permission can update another user's first name, last name, email, status, or reset their password.
 - [ ] A user with the `User: Remove` permission deactivates (`status = Inactive`) a user rather than deleting the record, per [ADR-0005](../../architecture/adr/0005-audit-columns-and-soft-delete-convention.md).
 - [ ] A user with the `User: View` permission (or `Create`/`Edit`/`Remove`, which always imply `View`) can list and view users.
+- [ ] While no User exists yet, the first-run setup wizard can create exactly one User with no permission check (there is no User to hold one yet); once any User exists, the wizard's create action is rejected.
 
 ## References
 
@@ -73,3 +76,4 @@ N/A
 | Person | Role | Date | Description |
 | -------- | ---- | ---- | ----------- |
 | Nicolas Filipe Cunha | Founder | 2026-08-16 | Created the User Management requirement. |
+| Nicolas Filipe Cunha | Founder | 2026-08-17 | Documented the first-run setup wizard as the sole exception to "no public self-registration". |

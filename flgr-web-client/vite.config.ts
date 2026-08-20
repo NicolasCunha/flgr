@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vitest/config'
+import { coverageConfigDefaults, defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
@@ -33,6 +33,15 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     coverage: {
       provider: 'v8',
+      // shadcn/ui's generated primitives (src/components/ui) are vendored,
+      // in-repo Radix wrappers — exercised through the app's own component
+      // tests, but chasing every internal branch (e.g. every Select
+      // sub-part, every Dialog prop default) inside code we didn't author
+      // adds no real signal. Test harness files under src/test are
+      // likewise infrastructure, not app logic. Both are excluded from the
+      // 100% threshold below; everything else (features, app shell,
+      // shared lib code) is still held to it with no exceptions.
+      exclude: [...coverageConfigDefaults.exclude, 'src/components/ui/**', 'src/test/**'],
       thresholds: {
         lines: 100,
         branches: 100,
