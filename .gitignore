@@ -47,3 +47,6 @@ go.work.sum
 
 # env file
 .env
+
+# local tmp file for keeping track of issues
+TMP_ISSUES.md
